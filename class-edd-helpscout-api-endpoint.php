@@ -31,6 +31,63 @@ if( stristr( $_SERVER['REQUEST_URI'], '/edd-helpscout-api/customer_info' ) !== f
 
             // throw error if a result hasn't been returned on init:99
             add_action( 'init', array( $this, 'throw_api_error' ), 99 );
+
+            // Customizations
+            add_action( 'edd_helpscout_after_order_list_item', array( $this, 'extend_orders_view' ), 10, 2 );
+            add_action( 'edd_helpscout_after_subscription_list_item', array( $this, 'extend_subscriptions_view' ) );
+        }
+
+        /**
+         * Extend orders view
+         * - Display Quaderno invoice link
+         */
+        public function extend_orders_view( $order, $helpscout_data ) {
+            //echo '<pre>'; print_r( $order ); echo '</pre>';
+
+            if ( ! isset( $order['id'] ) )
+                return;
+
+            $payment = new EDD_Payment( $order['id'] );
+            $quaderno_url = $payment->get_meta( '_quaderno_url' );
+            ob_start();
+            ?>
+            <li class="c-sb-list-item">
+                <span class="c-sb-list-item__text t-tx-charcoal-500" style="font-size:12px;">
+                    <i class="icon-doc" style="margin-top: -4px;"></i><?php esc_html_e( 'Quaderno Invoice', 'edd-quaderno' ); ?>:&nbsp;
+                    <?php if ( ! empty( $quaderno_url ) ) { ?>
+                        <a href="<?php echo esc_url( $quaderno_url ); ?>" target="_blank" rel="nofollow"><?php esc_html_e( 'View', 'edd-quaderno' ); ?></a>
+                    <?php } else { ?>
+                        N/A
+                    <?php } ?>
+                </span>
+            </li>
+            <?php
+            echo ob_get_clean();
+        }
+
+        /**
+         * Subscriptions view
+         * - Display billing cycle
+         */
+        public function extend_subscriptions_view( $subscription ) {
+            ob_start();
+            //echo '<pre>'; print_r( $subscription ); echo '</pre>';
+            //echo '<pre>'; print_r( $EDD_Subscription ); echo '</pre>';
+            $EDD_Subscription = new EDD_Subscription( $subscription['id'] );
+
+            $currency_code = edd_get_payment_currency_code( $EDD_Subscription->parent_payment_id );
+            $frequency     = EDD_Recurring()->get_pretty_subscription_frequency( $EDD_Subscription->period );
+            $initial       = edd_currency_filter( edd_format_amount( $EDD_Subscription->initial_amount ), $currency_code );
+            $billing       = edd_currency_filter( edd_format_amount( $EDD_Subscription->recurring_amount ), $currency_code ) . ' / ' . $frequency;
+            ?>
+            <li class="c-sb-list-item">
+                <span class="c-sb-list-item__text t-tx-charcoal-300" style="font-size:11px;"><?php _e( 'Billing Cycle:', 'edd-recurring' ); ?> <?php echo sprintf(
+                    /* translators: %1$s Initial subscription amount. %2$s Billing cycle amount and cycle length */
+                        _x( '%1$s then %2$s', 'edd-recurring' ), esc_html__( $initial ), esc_html__( $billing )
+                    ) ?></span>
+            </li>
+            <?php
+            echo ob_get_clean();
         }
 
         /**
