@@ -16,7 +16,9 @@ if( stristr( $_SERVER['REQUEST_URI'], '/edd-helpscout-api/customer_info' ) !== f
             define( 'EDD_SL_DOING_API', true );
 
             // disable cronjobs for this request
-            define('DISABLE_WP_CRON', true);
+            if( ! defined( 'DISABLE_WP_CRON' ) ) {
+                define( 'DISABLE_WP_CRON', true );
+            }
 
             // prevent session query caused by EDD if not set already
             if( ! defined( 'EDD_USE_PHP_SESSIONS' ) ) {
