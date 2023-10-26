@@ -107,6 +107,7 @@ if( stristr( $_SERVER['REQUEST_URI'], '/edd-helpscout-api/customer_info' ) !== f
         public function filter_active_plugins( $active_plugins ) {
             $active_plugins = array(
                 'easy-digital-downloads/easy-digital-downloads.php',
+                'easy-digital-downloads-pro/easy-digital-downloads.php',
                 'edd-software-licensing/edd-software-licenses.php',
                 'edd-all-access/edd-all-access.php',
                 'edd-helpscout/edd-helpscout.php',
